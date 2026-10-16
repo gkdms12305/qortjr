@@ -125,6 +125,76 @@ document.addEventListener('keydown',e=>{if(reader.hidden)return;if(e.key==='Esca
  function semanticCoverage(mine,reference){const mineWords=stems(mine),refWords=[...new Set(stems(reference))].filter(w=>w.length>1);const has=(w)=>mineWords.some(x=>x===w||(x.length>=3&&w.length>=3&&(x.includes(w)||w.includes(x))))||synonyms.some(g=>g.some(x=>w.includes(x)||x.includes(w))&&g.some(x=>mine.includes(x)));const hit=refWords.filter(has);return {ratio:refWords.length?Math.round(hit.length/refWords.length*100):0,hit,miss:refWords.filter(w=>!has(w))};}
  function scoreCard(name,value,description){const tile=document.createElement('div');tile.className='score-tile';const h=document.createElement('strong');h.textContent=name;const n=document.createElement('span');n.textContent=value+' / 100';const track=document.createElement('div');track.className='score-track';const bar=document.createElement('div');bar.className='score-fill';bar.style.width=value+'%';track.append(bar);const d=document.createElement('p');d.className='review-note';d.textContent=description;tile.append(h,n,track,d);return tile;}
   const questionPoints={1: [['문제가 발생한 경험', ['안무', '무대', '외우', '실수']], ['본인의 후속 행동', ['사과', '연습', '다시', '노력']], ['책임감에 대한 깨달음', ['책임', '준비', '반복']]], 2: [['협력 상황', ['축제', '부스', '정리']], ['솔선수범한 행동', ['먼저', '나서', '시작']], ['협력의 결과와 배움', ['함께', '참여', '협력', '마무리']]], 3: [['새 환경에서의 어려움', ['전학', '낯선', '어색', '친구']], ['먼저 다가간 구체적 행동', ['먼저', '말', '빌려', '대화']], ['적응 결과와 배움', ['적응', '친해', '소통']]], 4: [['상대 의견을 경청·존중', ['듣', '존중', '인정', '이해']], ['의견 조율 방법', ['비교', '근거', '조율', '대안']], ['열린 태도', ['바꾸', '수용', '열린']]], 5: [['선택한 가치와 이유', ['도전', '성장', '기회']], ['구체적인 도전 사례', ['발표', '나섰', '시도']], ['배움과 미래 태도', ['용기', '준비', '앞으로']]], 6: [['K뷰티의 현황과 의미', ['K뷰티', '한국', '세계', '문화']], ['산업 발전에 필요한 점', ['고객', '취향', '서비스', '만족']], ['전공과 자신의 계획 연결', ['배우', '기술', '미용', '기여']]], 7: [['존경하는 인물과 이유', ['마릴린', '먼로', '스타일', '개성']], ['묻고 싶은 구체적인 질문', ['비결', '어떻게', '질문']], ['전공·진로와 연결', ['고객', '미용', '기술', '시그니처']]], 8: [['진로 목표의 구체성', ['헤어', '미용', '스타일', '고객']], ['대학에서 배울 내용', ['대학', '기술', '실습', '디자인']], ['졸업 후 실천 계획', ['졸업', '현장', '실무', '경험']]], 9: [['흥미로웠던 과목과 활동', ['미술', '자화상', '그림']], ['흥미를 느낀 이유', ['관찰', '색', '표현', '분위기']], ['헤어 디자인과 연결', ['헤어', '고객', '스타일', '디자인']]], 10: [['본인의 강점', ['감각', '섬세', '관찰']], ['강점을 보여주는 사례', ['그림', '캐릭터', '얼굴형']], ['전공에서 활용할 계획', ['헤어', '고객', '기술', '실습']]], 11: [['우선순위 판단 기준', ['급한', '긴급', '중요', '영향']], ['상황별 구체적 대응', ['돕', '연결', '일정', '조정']], ['책임감과 배려의 균형', ['책임', '피해', '균형']]], 12: [['불참 이유 먼저 파악', ['이유', '사정', '대화', '어려움']], ['실질적인 역할 조정', ['역할', '조정', '일정', '분담']], ['공동 목표와 협력', ['협력', '함께', '목표']]], 13: [['수업과 일정의 우선순위', ['수업', '우선', '일정']], ['예외 상황의 소통', ['교수', '양해', '설명', '조율']], ['빠진 학습 보완', ['보완', '자료', '공부', '책임']]], 14: [['평가 기준 확인', ['기준', '확인', '점검']], ['근거에 따른 대응', ['근거', '교수', '문의', '보완']], ['AI 평가의 한계와 태도', ['AI', '사람', '공정', '참고']]], 15: [['동시 과제 상황', ['수행평가', '과제', '동시', '몰렸']], ['우선순위와 시간 관리', ['마감', '우선', '계획', '시간']], ['결과와 배움', ['완료', '마무리', '배웠', '관리']]]};
+  // 1번 질문: 제공된 실제 출제 의도에 맞춰 행동의 순서를 개별적으로 점검합니다.
+  const questionOneIntent=[
+   {label:'책임이 있었던 실제 실패·실수 사례',detail:'본인에게 책임이 있던 상황과 어떤 실수가 발생했는지',patterns:[/(무대|공연|동아리|조별|모둠|과제|활동|일|역할|안무|발표|팀)/,/(실수|실패|잘못|부족|못했|못해|놓쳤|잊었|준비하지|외우지|틀렸|문제|미흡)/]},
+   {label:'실수를 인정하는 태도',detail:'핑계 대신 자신의 부족함이나 잘못을 인정했는지',patterns:[/(인정|제 잘못|제 실수|내 잘못|내 실수|부족했|책임을 느|제 책임|내 책임|반성|잘못을 깨달|잘못했다고)/]},
+   {label:'솔직한 공유·사과 과정',detail:'관련된 사람에게 실수를 솔직하게 알리거나 사과했는지',patterns:[/(사과|죄송|미안|솔직|털어놓|알렸|말씀드|설명드|공유|잘못을 말|상황을 전)/]},
+   {label:'수습하기 위한 구체적인 행동',detail:'실수 이후 무엇을 직접 했는지',patterns:[/(다시 연습|반복 연습|추가 연습|연습했|보완했|수정했|다시 준비|재점검|정리했|도왔|해결했|수습|고쳤|노력했)/]},
+   {label:'반복 방지를 위한 습관의 변화',detail:'다음부터 어떻게 행동하거나 준비하는 습관을 만들었는지',patterns:[/(이후|그 뒤|그 후|다음부터|그때부터|지금은|앞으로|그 이후)/,/(미리|사전|꾸준|반복|점검|확인|계획|체크|준비|연습|습관|재발|반복하지|실수하지)/]},
+   {label:'경험에서 얻은 교훈',detail:'책임감·정직함·준비의 중요성 등 배운 점을 밝혔는지',patterns:[/(배웠|깨달|느꼈|알게 되었|중요하|교훈|책임감|정직|성장)/]}
+  ];
+
+  // 2~8번: 사용자가 제공한 백녹담 출제 의도에 따른 세부 평가 항목.
+  const additionalIntents={
+   2:{intro:'공동체 의식과 이타심: 기피 업무를 맡게 된 계기, 자발적 추가 노력, 팀 분위기와 완성도에 미친 변화를 확인합니다.',points:[
+    {label:'팀이 꺼리던 업무와 상황',detail:'모두가 하기 싫어하거나 미루던 구체적 역할',patterns:[/(축제|동아리|조별|모둠|팀|부스|정리|프로젝트|활동)/,/(꺼리|싫어|기피|힘들|지쳤|남았|미루|나서지|부담|어려웠)/]},
+    {label:'역할을 맡게 된 계기',detail:'왜 자신이 그 일을 맡기로 했는지',patterns:[/(누군가|필요|해야|생각|책임|위해|자발|스스로|먼저|결심|마음)/]},
+    {label:'시간과 노력을 더 들인 행동',detail:'본인이 실제로 추가로 한 일',patterns:[/(먼저|직접|추가|남아서|시간|더|스스로|자발|정리|도왔|맡았|시작|노력)/]},
+    {label:'팀 분위기에 생긴 긍정적 변화',detail:'팀원의 참여·사기·협력에 어떤 변화가 있었는지',patterns:[/(친구|팀원|동료|모두|다른 사람|함께)/,/(참여|따라|동참|협력|사기|분위기|힘을 모|도와)/]},
+    {label:'공동 결과와 완성도',detail:'공동 과업이 어떻게 마무리되거나 개선되었는지',patterns:[/(완료|마무리|끝냈|정리할 수|완성|성과|결과|깔끔|개선|성공)/]},
+    {label:'공동체·이타심에 대한 배움',detail:'내 행동이 공동체에 준 의미를 정리했는지',patterns:[/(배웠|느꼈|깨달|중요|뿌듯|공동체|협력|배려|책임)/]}
+   ]},
+   3:{intro:'소통 능력과 친화력: 낯선 상황에서 먼저 다가가고, 경청·공통 관심사로 관계를 형성하며 적응했는지 확인합니다.',points:[
+    {label:'낯선 환경의 구체적인 상황',detail:'전학·새 학년·동아리 등 처음 겪은 환경',patterns:[/(전학|새로운|낯선|처음|새 학년|입학|동아리|환경|학교)/]},
+    {label:'먼저 다가간 주도적 행동',detail:'기다리지 않고 직접 말을 걸거나 접점을 만든 행동',patterns:[/(먼저|다가가|말을 걸|인사|빌려주|다가갔|적극)/]},
+    {label:'경청·상호 대화',detail:'상대방의 말을 듣고 대화를 주고받은 과정',patterns:[/(대화|이야기|말을 나누|경청|들어주|질문|소통)/]},
+    {label:'공통 관심사·친밀감 형성',detail:'공통점을 찾거나 작은 교류로 관계를 이어 간 과정',patterns:[/(공통|관심사|친해|어울|교류|색연필|취미|함께|서로|관계)/]},
+    {label:'적응의 결과',detail:'새로운 환경에 자연스럽게 적응한 변화',patterns:[/(적응|친해|익숙|어울|편해|친구|관계.*형성)/]},
+    {label:'소통·주도적 적응에서 배운 점',detail:'먼저 다가가기와 소통의 중요성을 설명했는지',patterns:[/(배웠|깨달|느꼈|중요|알게|성장)/]}
+   ]},
+   4:{intro:'포용성과 의사소통: 상대 주장의 타당성 인정, 객관적 근거에 따른 조율, 공동체의 성과를 위한 존중을 확인합니다.',points:[
+    {label:'다른 의견을 인정·존중',detail:'상대방이 틀렸다고 단정하지 않는 태도',patterns:[/(인정|존중|이해|다를 수|다른 생각|열린 마음|수용)/]},
+    {label:'상대의 이유를 듣고 공감',detail:'상대 주장의 배경과 이유를 경청하는 과정',patterns:[/(듣|경청|공감|이유|입장|왜 그렇게)/]},
+    {label:'내 의견도 분명하게 전달',detail:'자신의 생각과 근거를 예의 있게 설명하는 방식',patterns:[/(제 의견|내 의견|제 생각|내 생각|제 입장|설명|표현|전달|말하)/]},
+    {label:'객관적인 근거로 의견 조율',detail:'서로의 주장을 비교하고 사실·근거를 검토하는 과정',patterns:[/(객관|근거|비교|검토|조율|논의|타당)/]},
+    {label:'대안·타협점 제시',detail:'서로 받아들일 수 있는 해결책을 찾는지',patterns:[/(대안|타협|절충|합의|해결책|양쪽|서로.*받아들|조정)/]},
+    {label:'공동체 성과와 배운 점',detail:'다름의 존중이 협력과 결과를 풍성하게 한다는 인식',patterns:[/(공동체|협력|더 좋은|좋은 결과|성과|배웠|중요|존중)/]}
+   ]},
+   5:{intro:'가치 판단 기준과 균형 감각: 도전·신중함 중 하나를 선택하고 본인 경험과 이유, 배움을 연결하는지 확인합니다.',points:[
+    {label:'중요하게 생각하는 가치 선택',detail:'도전 또는 신중함 중 하나를 명확히 선택',patterns:[/(도전|신중)/,/(더 중요|우선|선택|가치|생각)/]},
+    {label:'선택한 이유와 판단 기준',detail:'그 가치를 중시하는 이유가 드러나는지',patterns:[/(때문|이유|기회|성장|위험|실패|안정|준비|판단)/]},
+    {label:'본인의 구체적 경험',detail:'실제로 겪은 발표·프로젝트·사전 조사 등의 사례',patterns:[/(발표|프로젝트|과제|활동|조별|모둠|조사|경험|시도|준비했)/]},
+    {label:'경험 속 구체적인 행동',detail:'선택한 가치를 행동으로 보여준 과정',patterns:[/(직접|나섰|자원|시도|도전했|조사|검토|준비|계획|결정)/]},
+    {label:'행동의 결과·성찰',detail:'그 경험의 결과 또는 느낀 점',patterns:[/(결과|배웠|느꼈|깨달|성장|발전|알게)/]},
+    {label:'반대 가치와의 균형',detail:'도전하되 준비하거나 신중하되 기회를 놓치지 않는 균형',patterns:[/(신중|도전)/,/(준비|판단|균형|함께|동시에|충분히|위험|기회)/]}
+   ]},
+   6:{intro:'전공 관심도와 시사 상식: 전공 관련 최근 이슈를 특정하고, 탐구 과정 및 본인만의 생각을 설명하는지 확인합니다.',points:[
+    {label:'전공 관련 구체적인 이슈 선택',detail:'K뷰티 등 최근 주목받는 변화나 현상을 특정',patterns:[/(K.?뷰티|뷰티|미용|헤어|화장품|산업|트렌드|기술|AI)/,/(주목|최근|세계|변화|인기|성장|이슈|확산)/]},
+    {label:'이슈가 전공과 밀접한 이유',detail:'선택한 현상이 학과·진로와 어떤 관련이 있는지',patterns:[/(전공|학과|미용|헤어|고객|뷰티|기술|서비스|진로)/]},
+    {label:'스스로 알아본 탐구 과정',detail:'뉴스·기사·자료·활동 등을 찾아보고 고민한 과정',patterns:[/(기사|뉴스|검색|찾아|조사|자료|읽|알아보|살펴보|탐구|접했|관찰)/]},
+    {label:'현상에 대한 본인의 해석',detail:'사실 나열을 넘어 왜 중요하고 어떤 변화가 생길지 생각',patterns:[/(생각|느꼈|중요|가능성|의미|필요|문제|기회|영향|전망)/]},
+    {label:'구체적인 근거나 사례',detail:'실제 사례·고객 반응·변화 양상 등 설명',patterns:[/(예를 들어|특히|실제로|사례|외국인|고객|문화|서비스|취향|수요|경험)/]},
+    {label:'전공 학습·진로와 연결',detail:'대학에서 배우거나 앞으로 실천할 방향',patterns:[/(대학|배우|익히|전문|발전|기여|앞으로|실습|목표|성장)/]}
+   ]},
+   7:{intro:'가치관과 진로 진정성: 존경 인물의 삶과 자신의 진로 고민을 연결하고, 듣고 싶은 조언과 그 이유를 설명합니다.',points:[
+    {label:'존경하는 인물의 명확한 제시',detail:'누구를 존경하는지 특정',patterns:[/(마릴린|먼로|멘토|존경하는 인물|존경하는 사람|선생님|디자이너|아티스트)/]},
+    {label:'인물의 특징·삶과 존경 이유',detail:'업적 나열보다 어떤 가치·태도가 인상적인지',patterns:[/(개성|스타일|삶|가치|태도|매력|노력|철학|독보|기억|존경|인상)/]},
+    {label:'전공·진로와 연결되는 질문',detail:'그 인물에게 묻고 싶은 구체적인 질문',patterns:[/(묻고|질문|여쭙|알고 싶|듣고 싶|비결|어떻게)/,/(스타일|개성|진로|미용|헤어|디자인|매력|기술|고객|성장)/]},
+    {label:'왜 그 조언을 듣고 싶은지',detail:'본인의 고민·목표에 그 질문이 필요한 이유',patterns:[/(때문|이유|위해|저도|저 역시|저의|제 목표|되고 싶|배우고 싶)/]},
+    {label:'본인의 구체적인 진로 고민',detail:'어떤 전문가가 되고 싶은지 또는 무엇을 발전시키려는지',patterns:[/(고객|헤어|미용|전문|시그니처|개성|기술|감각|스타일|진로)/]},
+    {label:'배운 조언을 실천할 방향',detail:'조언을 바탕으로 앞으로 무엇을 할지',patterns:[/(앞으로|대학|배우|익히|키우|성장|만들|발전|실천|노력)/]}
+   ]},
+   8:{intro:'전공 적합성과 진로 진정성: 지원 계기, 전공 이해, 졸업 후 단계별 계획과 전문성 목표를 확인합니다.',points:[
+    {label:'전공을 선택한 결정적 계기',detail:'뷰티에 관심을 갖게 된 실제 경험·사건',patterns:[/(어릴 때|계기|경험|관심|메이크업|네일|헤어|미용|뷰티|활동)/]},
+    {label:'그 경험이 전공 선택으로 이어진 이유',detail:'경험에서 무엇을 느껴 진로로 정했는지',patterns:[/(흥미|매력|즐거|느꼈|좋아|관심|적성|선택|결심|때문)/]},
+    {label:'지원 전공의 구체적인 이해',detail:'학과 커리큘럼·실습·계약학과 등 실제 배울 내용',patterns:[/(학과|대학|리차드|계약학과|커리큘럼|실습|헤어 디자인|기술|전문)/]},
+    {label:'대학에서의 학습 계획',detail:'어떤 기술과 역량을 키울 것인지',patterns:[/(대학|입학|재학|학교)/,/(배우|익히|실습|기술|감각|역량|연습|공부)/]},
+    {label:'졸업 후 현장 경험 계획',detail:'졸업 이후 실무를 통해 성장할 단계별 계획',patterns:[/(졸업|현장|취업|실무|경력|고객|살롱|미용실)/,/(경험|쌓|배우|키우|일하|성장|발전)/]},
+    {label:'장기 목표와 전문성 분야',detail:'어떤 전문 미용인이 되어 누구에게 무엇을 제공할지',patterns:[/(장기|최종|목표|전문|미용인|디자이너|신뢰|시그니처)/,/(고객|스타일|헤어|개성|얼굴형|취향|제안|디자인)/]}
+   ]}
+  };
+  function evaluatePoint(point,answer){return point.patterns.every(re=>re.test(answer));}
   const storageKey='beauty-interview-answer-history-v1';
   let history={};
   try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))history=parsed;}catch(e){}
@@ -187,10 +257,10 @@ document.addEventListener('keydown',e=>{if(reader.hidden)return;if(e.key==='Esca
   const clarity=Math.max(20,Math.min(100,Math.round(70+(sentences.length>=3?12:0)+(mine.includes('때문')||mine.includes('따라서')?10:0)-(repetition.length?15:0)-(sentences.some(x=>x.length>145)?15:0))));
   const summary=document.getElementById('review-summary');summary.replaceChildren();const intro=document.createElement('p');intro.textContent='자동 점검 결과 · '+len+'자 · '+sentences.length+'개 문장 (실제 면접 점수가 아닙니다)';summary.append(intro);
   const grid=document.createElement('div');grid.className='score-grid';grid.append(scoreCard('핵심 표현 유사도',coverage.ratio,'어간·일부 유의 표현을 비교한 참고 지표'),scoreCard('답변 구성',structure,'질문 유형별 구성 요소 감지'),scoreCard('답변 분량',lengthScore,'연습용 분량 가이드'),scoreCard('전달 구조',clarity,'문장 구분·반복·근거 표현 점검'));summary.append(grid);
-  const pointHost=document.getElementById('keypoint-results');pointHost.replaceChildren();const pointPanel=appendText(pointHost,'div','', 'keypoint-panel');appendText(pointPanel,'h4','🎯 질문 핵심 포인트 점검');
-  const pointList=questionPoints[selected[0]]||[];let hits=0;
-  for(const [label,terms] of pointList){const matched=terms.some(term=>normalize(mine).includes(normalize(term)));if(matched)hits++;const row=appendText(pointPanel,'div','', 'keypoint-item');appendText(row,'span',matched?'✓':'△','keypoint-mark');const detail=appendText(row,'div','');appendText(detail,'strong',label);appendText(detail,'small',matched?'관련 표현 감지됨':'관련 표현을 찾지 못함 · 예시 키워드: '+terms.join(', '));}
-  appendText(pointPanel,'p',`핵심 포인트 표현 감지: ${hits} / ${pointList.length}개 (${pointList.length?Math.round(hits/pointList.length*100):0}%)`,'keypoint-score');appendText(pointPanel,'p','문장 속 단어를 기준으로 한 보조 점검입니다. 의미가 같아도 다른 표현이면 미감지될 수 있고, 단어만 포함해도 감지될 수 있습니다.','review-note');
+  const pointHost=document.getElementById('keypoint-results');pointHost.replaceChildren();const pointPanel=appendText(pointHost,'div','', 'keypoint-panel');appendText(pointPanel,'h4','🎯 질문 핵심 포인트 점검');if(selected[0]===1)appendText(pointPanel,'p','출제 의도: 실수 인정 → 솔직한 공유 → 수습 행동 → 재발 방지 습관 → 배운 점의 흐름을 확인합니다.','review-note');else if(additionalIntents[selected[0]])appendText(pointPanel,'p','출제 의도: '+additionalIntents[selected[0]].intro,'review-note');
+  const intentPoints=selected[0]===1?questionOneIntent:(additionalIntents[selected[0]]?.points||null);const pointList=intentPoints?intentPoints.map(p=>[p.label,p]):(questionPoints[selected[0]]||[]);let hits=0;
+  for(const [label,terms] of pointList){const matched=intentPoints?evaluatePoint(terms,mine):terms.some(term=>normalize(mine).includes(normalize(term)));if(matched)hits++;const row=appendText(pointPanel,'div','', 'keypoint-item');appendText(row,'span',matched?'✓':'△','keypoint-mark');const detail=appendText(row,'div','');appendText(detail,'strong',label);appendText(detail,'small',intentPoints?(matched?'관련 내용의 표현이 감지됨 · '+terms.detail:'확인이 필요한 내용 · '+terms.detail):(matched?'관련 표현 감지됨':'관련 표현을 찾지 못함 · 예시 키워드: '+terms.join(', ')));}
+  appendText(pointPanel,'p',`핵심 포인트 표현 감지: ${hits} / ${pointList.length}개 (${pointList.length?Math.round(hits/pointList.length*100):0}%)`,'keypoint-score');appendText(pointPanel,'p','규칙 기반 표현 감지입니다. 실제 행동 순서·진실성·문맥을 이해하는 AI 평가는 아니며, 같은 의미를 다르게 쓰면 놓칠 수 있습니다.','review-note');
   const match=document.createElement('p');match.className='reference-match';match.textContent='📊 참고 답변 일치율(핵심 표현 기준): '+coverage.ratio+'%';summary.append(match);const labels=document.createElement('p');labels.textContent='구성 요소: ';checks.forEach(c=>{const tag=document.createElement('span');tag.className='review-tag';tag.textContent=(c.ok?'✓ ':'△ ')+c.label;labels.append(tag)});summary.append(labels);
   const list=document.getElementById('review-suggestions');list.replaceChildren();const tips=[];
   checks.filter(c=>!c.ok).forEach(c=>tips.push('「'+c.label+'」 요소가 표현상 뚜렷하지 않아요. 해당 내용을 한 문장으로 구체화해 보세요. (다른 표현으로 이미 썼다면 무시해도 됩니다.)'));
